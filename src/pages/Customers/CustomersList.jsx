@@ -21,6 +21,7 @@ import {
     DialogContent,
     DialogActions,
     Button,
+    TableContainer,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
@@ -97,11 +98,19 @@ export default function CustomersList() {
     }, [q, customers]);
 
     return (
-        <Box sx={{ direction: "rtl" }}>
+        <Box
+            sx={{
+                direction: "rtl",
+                width: "100%",
+                maxWidth: "100%",
+                // ✅ ممنوع scroll هنا عشان مايحصلش scroll مزدوج
+                overflow: "visible",
+            }}
+        >
             {/* Header */}
             <Stack
-                direction="row"
-                alignItems="center"
+                direction={{ xs: "column", sm: "row" }}
+                alignItems={{ xs: "stretch", sm: "center" }}
                 spacing={1.5}
                 sx={{ mb: 2 }}
             >
@@ -117,7 +126,7 @@ export default function CustomersList() {
                     العملاء
                 </Typography>
 
-                <Box sx={{ flex: 1 }} />
+                <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
 
                 <TextField
                     value={q}
@@ -140,7 +149,6 @@ export default function CustomersList() {
                     }}
                 />
 
-                {/* ✅ Refresh حقيقي */}
                 <IconButton
                     sx={{
                         bgcolor: "rgba(148,163,184,0.08)",
@@ -162,7 +170,7 @@ export default function CustomersList() {
                     boxShadow: "none",
                 }}
             >
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
                         <Typography sx={{ fontWeight: 700 }}>
                             قائمة العملاء
@@ -199,20 +207,55 @@ export default function CustomersList() {
 
                     <Divider sx={{ mb: 2, borderColor: "#1e293b" }} />
 
-                    {/* Table */}
-                    <Box
+                    {/* ✅ Scroll-X الحقيقي هنا */}
+                    <TableContainer
+                        component={Box}
                         sx={{
+                            width: "100%",
+                            maxWidth: "100%",
                             overflowX: "auto",
-                            "&::-webkit-scrollbar": { height: "6px" },
+                            overflowY: "hidden",
+                            direction: "ltr", // ✅ يخلي سحب السكرول طبيعي
+                            WebkitOverflowScrolling: "touch",
+                            touchAction: "pan-x",
+
+                            "&::-webkit-scrollbar": { height: "8px" },
                             "&::-webkit-scrollbar-thumb": {
-                                backgroundColor: "rgba(148,163,184,0.28)",
+                                backgroundColor: "rgba(148,163,184,0.5)",
                                 borderRadius: "10px",
+                                "&:hover": {
+                                    backgroundColor: "rgba(148,163,184,0.7)",
+                                },
+                            },
+                            "&::-webkit-scrollbar-track": {
+                                backgroundColor: "rgba(148,163,184,0.1)",
                             },
                         }}
                     >
-                        <Table size="small" sx={{ minWidth: 800 }}>
+                        <Table
+                            size="small"
+                            sx={{
+                                // ✅ لازم يبقى أعرض من الموبايل عشان يعمل overflow
+                                minWidth: { xs: 950, sm: 700 },
+
+                                // ✅ الجدول نفسه عربي RTL
+                                direction: "rtl",
+
+                                "& th, & td": {
+                                    whiteSpace: "nowrap",
+                                    px: { xs: 1, sm: 2 },
+                                    py: { xs: 1, sm: 1.5 },
+                                },
+                            }}
+                        >
                             <TableHead>
                                 <TableRow>
+                                    <TableCell
+                                        align="center"
+                                        sx={{ color: "text.secondary" }}
+                                    >
+                                        إجراءات
+                                    </TableCell>
                                     <TableCell sx={{ color: "text.secondary" }}>
                                         ID
                                     </TableCell>
@@ -231,12 +274,6 @@ export default function CustomersList() {
                                     >
                                         المديونية
                                     </TableCell>
-                                    <TableCell
-                                        align="center"
-                                        sx={{ color: "text.secondary" }}
-                                    >
-                                        إجراءات
-                                    </TableCell>
                                 </TableRow>
                             </TableHead>
 
@@ -252,15 +289,6 @@ export default function CustomersList() {
                                             },
                                         }}
                                     >
-                                        <TableCell>{c.customerId}</TableCell>
-                                        <TableCell sx={{ fontWeight: 600 }}>
-                                            {c.customerName}
-                                        </TableCell>
-                                        <TableCell>{c.phone}</TableCell>
-                                        <TableCell>{c.address}</TableCell>
-                                        <TableCell align="center">
-                                            {c.dept}
-                                        </TableCell>
                                         <TableCell align="center">
                                             <IconButton
                                                 size="small"
@@ -280,6 +308,16 @@ export default function CustomersList() {
                                             >
                                                 <MoreHorizIcon />
                                             </IconButton>
+                                        </TableCell>
+
+                                        <TableCell>{c.customerId}</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }}>
+                                            {c.customerName}
+                                        </TableCell>
+                                        <TableCell>{c.phone}</TableCell>
+                                        <TableCell>{c.address}</TableCell>
+                                        <TableCell align="center">
+                                            {c.dept}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -315,7 +353,7 @@ export default function CustomersList() {
                                 )}
                             </TableBody>
                         </Table>
-                    </Box>
+                    </TableContainer>
                 </CardContent>
             </Card>
 

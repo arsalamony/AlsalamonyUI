@@ -37,7 +37,7 @@ import { UsersProvider } from "../providers/UsersProvider";
 import { UserLocationProvider } from "../providers/UserLocationProvider";
 
 const DRAWER_WIDTH = 280;
-const COLLAPSED_WIDTH = 100;
+const COLLAPSED_WIDTH = 0;
 
 const navItems = [
     { label: "الرئيسية", to: "/dashboard", icon: <HomeFilled /> },
