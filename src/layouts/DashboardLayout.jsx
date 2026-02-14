@@ -5,7 +5,6 @@ import {
     Box,
     Collapse,
     CssBaseline,
-    Divider,
     Drawer,
     IconButton,
     List,
@@ -14,8 +13,12 @@ import {
     ListItemText,
     Toolbar,
     Typography,
+    useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import PaymentsIcon from "@mui/icons-material/Payments";
 import {
     Add,
     ExpandLess,
@@ -37,7 +40,6 @@ import { UsersProvider } from "../providers/UsersProvider";
 import { UserLocationProvider } from "../providers/UserLocationProvider";
 
 const DRAWER_WIDTH = 280;
-const COLLAPSED_WIDTH = 0;
 
 const navItems = [
     { label: "الرئيسية", to: "/dashboard", icon: <HomeFilled /> },
@@ -53,16 +55,29 @@ const navItems = [
             },
         ],
     },
-    { label: "إضافة فاتورة لمجهول", to: "/invoices/new", icon: <Add /> },
-    { label: "الدفعات والحساب", to: "/payments", icon: <Add /> },
+    {
+        label: "إضافة فاتورة لمجهول",
+        to: "/invoices/new",
+        icon: <ReceiptLongIcon />,
+    },
+    { label: "الدفعات والحساب", to: "/payments", icon: <PaymentsIcon /> },
     { label: "التسجيلات", to: "/Records", icon: <Notes /> },
     { label: "المهمام", to: "/Tasks", icon: <Task /> },
 ];
 
 export default function DashboardLayout() {
-    const [collapsed, setCollapsed] = useState(false);
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-    const drawerWidth = collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH;
+    const [collapsed, setCollapsed] = useState(false); // للـ desktop
+    const [mobileOpen, setMobileOpen] = useState(false); // للموبايل
+
+    const drawerWidth = collapsed ? 0 : DRAWER_WIDTH;
+
+    const handleMenuClick = () => {
+        if (isMobile) setMobileOpen((p) => !p);
+        else setCollapsed((p) => !p);
+    };
 
     return (
         <AddressesProvider>
@@ -70,25 +85,28 @@ export default function DashboardLayout() {
                 <ProductsProvider>
                     <UsersProvider>
                         <UserLocationProvider>
-                            <Box sx={{ display: "flex", direction: "rtl" }}>
+                            {/* ✅ مهم جداً: امنع سكرول الصفحة أفقيًا وخلي السكرول جوه الجدول فقط */}
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    direction: "rtl",
+                                    width: "100%",
+                                    overflowX: "hidden",
+                                }}
+                            >
                                 <CssBaseline />
 
-                                {/* Top Bar */}
                                 <AppBar
                                     position="fixed"
                                     sx={{
                                         bgcolor: "#0b1220",
                                         borderBottom: "1px solid #1e293b",
-                                        zIndex: (theme) =>
-                                            theme.zIndex.drawer + 1,
+                                        zIndex: (t) => t.zIndex.drawer + 1,
                                     }}
                                 >
                                     <Toolbar sx={{ gap: 1 }}>
-                                        {/* زرار فتح/قفل السايدبار (يمين) */}
                                         <IconButton
-                                            onClick={() =>
-                                                setCollapsed((p) => !p)
-                                            }
+                                            onClick={handleMenuClick}
                                             sx={{ color: "text.primary" }}
                                             edge="start"
                                         >
@@ -97,7 +115,6 @@ export default function DashboardLayout() {
 
                                         <Box sx={{ flex: 1 }} />
 
-                                        {/* Logo / Title */}
                                         <Typography
                                             sx={{
                                                 fontWeight: 700,
@@ -114,39 +131,45 @@ export default function DashboardLayout() {
                                     </Toolbar>
                                 </AppBar>
 
-                                {/* Right Sidebar (Drawer) */}
+                                {/* ✅ Drawer: على الموبايل Temporary (Overlay)، على الديسكتوب Permanent */}
                                 <Drawer
-                                    variant="permanent"
+                                    variant={
+                                        isMobile ? "temporary" : "permanent"
+                                    }
+                                    open={isMobile ? mobileOpen : true}
+                                    onClose={() => setMobileOpen(false)}
                                     anchor="right"
+                                    ModalProps={{ keepMounted: true }} // أداء أفضل على الموبايل
                                     sx={{
-                                        width: drawerWidth,
+                                        width: isMobile
+                                            ? DRAWER_WIDTH
+                                            : drawerWidth,
                                         flexShrink: 0,
                                         "& .MuiDrawer-paper": {
-                                            width: drawerWidth,
+                                            width: isMobile
+                                                ? DRAWER_WIDTH
+                                                : drawerWidth,
                                             boxSizing: "border-box",
                                             bgcolor: "#0b1220",
                                             borderLeft: "1px solid #1e293b",
-                                            overflow: "hidden", // ✅ مهم: امنع الاسكرول على الورقة نفسها
+                                            overflow: "hidden",
                                             transition: "width 200ms ease",
-                                            height: "100vh", // ✅ ثبت الارتفاع
+                                            height: "100vh",
                                             display: "flex",
                                             flexDirection: "column",
                                         },
                                     }}
                                 >
-                                    {/* space for AppBar */}
                                     <Toolbar />
 
-                                    {/* ✅ ده اللي هيعمل scroll لما العناصر تكتر */}
                                     <Box
                                         sx={{
                                             px: 1,
                                             flex: 1,
-                                            overflowY: "auto", // ✅ يظهر بس عند الحاجة
+                                            overflowY: "auto",
                                             overflowX: "hidden",
                                             pb: 1,
                                             direction: "ltr",
-                                            // ✅ Scrollbar شيك ومناسب للدارك (هيظهر فقط لو فيه overflow)
                                             "&::-webkit-scrollbar": {
                                                 width: "5px",
                                             },
@@ -155,7 +178,7 @@ export default function DashboardLayout() {
                                             },
                                             "&::-webkit-scrollbar-thumb": {
                                                 backgroundColor:
-                                                    "rgba(148,163,184,0.28)", // رمادي مزرق هادي
+                                                    "rgba(148,163,184,0.28)",
                                                 borderRadius: "10px",
                                             },
                                             "&::-webkit-scrollbar-thumb:hover":
@@ -163,8 +186,6 @@ export default function DashboardLayout() {
                                                     backgroundColor:
                                                         "rgba(148,163,184,0.45)",
                                                 },
-
-                                            // Firefox
                                             scrollbarWidth: "thin",
                                             scrollbarColor:
                                                 "rgba(148,163,184,0.28) transparent",
@@ -172,12 +193,20 @@ export default function DashboardLayout() {
                                     >
                                         <SidebarMenu
                                             navItems={navItems}
-                                            collapsed={collapsed}
+                                            collapsed={
+                                                isMobile ? false : collapsed
+                                            }
+                                            onNavigate={() =>
+                                                isMobile && setMobileOpen(false)
+                                            }
                                         />
+
                                         <ListItemButton
                                             component={NavLink}
                                             onClick={() => {
                                                 logout();
+                                                if (isMobile)
+                                                    setMobileOpen(false);
                                             }}
                                             to={"/login"}
                                             sx={{
@@ -204,13 +233,19 @@ export default function DashboardLayout() {
                                                     width: 36,
                                                 }}
                                             >
-                                                <Logout></Logout>
+                                                <Logout />
                                             </ListItemIcon>
 
                                             <ListItemText
                                                 primary="تسجيل الخروج"
                                                 sx={{
-                                                    opacity: collapsed ? 0 : 1,
+                                                    opacity: (
+                                                        isMobile
+                                                            ? false
+                                                            : collapsed
+                                                    )
+                                                        ? 0
+                                                        : 1,
                                                     transition:
                                                         "opacity 150ms ease",
                                                     whiteSpace: "nowrap",
@@ -220,23 +255,23 @@ export default function DashboardLayout() {
                                     </Box>
                                 </Drawer>
 
-                                {/* Main Content */}
+                                {/* ✅ Main Content */}
                                 <Box
                                     component="main"
                                     sx={{
                                         flexGrow: 1,
+                                        width: "100%",
                                         minHeight: "100vh",
+
+                                        // ✅ أهم سطرين لحل مشكلة الـ overflow داخل flex
+                                        minWidth: 0, // يسمح للـ Outlet ينكمش بدل ما يوسّع الصفحة
+                                        overflowX: "hidden", // امنع سكرول الصفحة - وخلي سكرول الجدول داخلي
+
                                         bgcolor: "#0f172a",
-                                        p: 3,
-                                        // مهم: نزق المحتوى عشان السايدبار على اليمين
-                                        mr: `$20px`,
-                                        transition: "margin-right 200ms ease",
+                                        p: { xs: 2, sm: 3 },
                                     }}
                                 >
-                                    {/* space for AppBar */}
                                     <Toolbar />
-
-                                    {/* هنا الـ Outlet بتاعك */}
                                     <Outlet />
                                 </Box>
                             </Box>
@@ -248,30 +283,27 @@ export default function DashboardLayout() {
     );
 }
 
-function SidebarMenu({ navItems, collapsed }) {
-    const [openMap, setOpenMap] = useState({ accounts: true }); // افتح/اقفل مجموعات
+function SidebarMenu({ navItems, collapsed, onNavigate }) {
+    const [openMap, setOpenMap] = useState({});
 
-    const toggleGroup = (key) => {
+    const toggleGroup = (key) =>
         setOpenMap((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
 
     return (
         <List sx={{ pt: 1, direction: "rtl" }}>
             {navItems.map((item, idx) => {
                 const hasChildren =
                     Array.isArray(item.children) && item.children.length > 0;
-
-                // اعمل key ثابت للجروب
                 const groupKey = item.to || item.label || String(idx);
                 const isOpen = !!openMap[groupKey];
 
                 if (!hasChildren) {
-                    // عنصر عادي (NavLink)
                     return (
                         <ListItemButton
                             key={groupKey}
                             component={NavLink}
                             to={item.to}
+                            onClick={onNavigate}
                             sx={{
                                 borderRadius: 2,
                                 mx: 1,
@@ -309,11 +341,10 @@ function SidebarMenu({ navItems, collapsed }) {
                     );
                 }
 
-                // عنصر Group (Button يفتح/يقفل)
                 return (
                     <Box key={groupKey}>
                         <ListItemButton
-                            onClick={() => !collapsed && toggleGroup(groupKey)} // لو collapsed ما نفتحش sub
+                            onClick={() => !collapsed && toggleGroup(groupKey)}
                             sx={{
                                 borderRadius: 2,
                                 mx: 1,
@@ -348,12 +379,10 @@ function SidebarMenu({ navItems, collapsed }) {
                                 }}
                             />
 
-                            {/* السهم */}
                             {!collapsed &&
                                 (isOpen ? <ExpandLess /> : <ExpandMore />)}
                         </ListItemButton>
 
-                        {/* Sub Items */}
                         <Collapse
                             in={!collapsed && isOpen}
                             timeout="auto"
@@ -365,11 +394,12 @@ function SidebarMenu({ navItems, collapsed }) {
                                         key={child.to}
                                         component={NavLink}
                                         to={child.to}
+                                        onClick={onNavigate}
                                         sx={{
                                             borderRadius: 2,
                                             mx: 1,
                                             my: 0.25,
-                                            pr: 5, // indent من اليمين (RTL)
+                                            pr: 5,
                                             "&.active": {
                                                 bgcolor:
                                                     "rgba(56,189,248,0.10)",

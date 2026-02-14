@@ -64,7 +64,7 @@ function levelMeta(level) {
         };
     if (v === 3)
         return {
-            label: "خطر",
+            label: "تحذير",
             sx: {
                 bgcolor: "rgba(239,68,68,0.12)",
                 border: "1px solid rgba(239,68,68,0.25)",
