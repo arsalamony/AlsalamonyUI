@@ -168,9 +168,9 @@ export default function InvoiceCreate() {
             e.amountPaid = "المدفوع لازم يكون رقم 0 أو أكبر";
 
         // لو مفيش items يبقى لازم إجمالي > 0 (دين/خدمة)
-        if (items.length === 0) {
+        if (Number(totalAmount) <= 0) {
             if (!Number.isFinite(t) || t <= 0)
-                e.totalAmount = "لو مفيش منتجات لازم تكتب إجمالي أكبر من صفر";
+                e.totalAmount = "السعر النهائي كام بعد الخصومات والكسور";
         }
 
         // مجهول: لازم يدفع كامل
