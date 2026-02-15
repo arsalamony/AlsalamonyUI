@@ -5,6 +5,11 @@ export async function addInvoice(payload) {
     return res.data;
 }
 
+export async function getInvoiceById(invoiceId) {
+    const res = await http.get(`/Invoice/Get/${invoiceId}`);
+    return res.data;
+}
+
 export async function getUnpaidInvoicesByCustomer(customerId) {
     const res = await http.get("/Invoice/GetAllUnpayed", {
         params: { CustomerId: Number(customerId) },
@@ -15,5 +20,10 @@ export async function getUnpaidInvoicesByCustomer(customerId) {
 export async function addInvoicePayment(payload) {
     // payload: { invoiceId, amountPaid, notes, paymentMethod }
     const res = await http.post("/Invoice/InvoicePayment", payload);
+    return res.data;
+}
+
+export async function FullDeleteInvoice(InvoiceId) {
+    const res = await http.delete(`/Invoice/FullDelete/${InvoiceId}`);
     return res.data;
 }

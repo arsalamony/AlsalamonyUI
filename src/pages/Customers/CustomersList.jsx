@@ -453,7 +453,7 @@ function CustomerActionsDialog({ open, onClose, customer }) {
                     }}
                 >
                     <ActionBtn
-                        title="عرض الفواتير الغير مسددة"
+                        title="عرض كل الفواتير"
                         icon={<VisibilityIcon />}
                         bg="rgba(56,189,248,0.14)"
                         border="rgba(56,189,248,0.28)"

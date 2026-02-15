@@ -108,7 +108,6 @@ export default function Records() {
 
             setError("");
             const data = await getSystemRecords();
-            console.log("data : ",data);
             setRecords(Array.isArray(data) ? data : []);
         } catch (err) {
             setError(getErrorMessage(err));

@@ -370,6 +370,7 @@ export default function InvoiceCreate() {
                             : "1px solid rgba(56,189,248,0.25)",
                         color: "#e5e7eb",
                         fontWeight: 800,
+                        fontSize:"3em"
                     }}
                 />
 

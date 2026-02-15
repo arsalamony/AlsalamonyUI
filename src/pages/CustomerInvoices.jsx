@@ -67,7 +67,7 @@ export default function CustomerInvoices() {
                 // ضمان إنها Array
                 setInvoices(Array.isArray(data) ? data : []);
             } catch (e) {
-                console.log("CustomerInvoices Error: ",e);
+                console.log("CustomerInvoices Error: ", e);
                 if (cancelled) return;
                 setError("حصل خطأ أثناء تحميل الفواتير. حاول مرة أخرى.");
                 setInvoices([]);
@@ -123,23 +123,21 @@ export default function CustomerInvoices() {
         const paid = Number(payload?.amountPaid ?? 0);
 
         setInvoices((prev) => {
-            return prev
-                .map((inv) => {
-                    if (inv.invoiceId !== payload.invoiceId) return inv;
+            return prev.map((inv) => {
+                if (inv.invoiceId !== payload.invoiceId) return inv;
 
-                    const newPaid = Number(inv.amountPaid ?? 0) + paid;
-                    const newRemaining = Math.max(
-                        0,
-                        Number(inv.remainingAmount ?? 0) - paid,
-                    );
+                const newPaid = Number(inv.amountPaid ?? 0) + paid;
+                const newRemaining = Math.max(
+                    0,
+                    Number(inv.remainingAmount ?? 0) - paid,
+                );
 
-                    return {
-                        ...inv,
-                        amountPaid: newPaid,
-                        remainingAmount: newRemaining,
-                    };
-                })
-                .filter((inv) => Number(inv.remainingAmount ?? 0) > 0); // لأن endpoint أصلاً غير مكتمل
+                return {
+                    ...inv,
+                    amountPaid: newPaid,
+                    remainingAmount: newRemaining,
+                };
+            });
         });
     };
 
@@ -467,6 +465,15 @@ export default function CustomerInvoices() {
                 onClose={closeActions}
                 invoice={actionsInvoice}
                 onPaymentSuccess={handlePaymentSuccess}
+                onDeleted={(deletedId) => {
+                    // 1) شيل الفاتورة من الليست
+                    setInvoices((prev) =>
+                        prev.filter((x) => x.invoiceId !== deletedId),
+                    );
+
+                    // 2) اقفل الدايلوج (احتياطي)
+                    closeActions();
+                }}
             />
         </Box>
     );

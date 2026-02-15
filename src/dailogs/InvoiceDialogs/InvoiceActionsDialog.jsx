@@ -9,23 +9,82 @@ import {
     DialogContent,
     Button,
     DialogActions,
+    CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import InvoicePaymentDialog from "../../pages/Payments/InvoicePaymentDialog";
 import { useState } from "react";
 import { formatMoney } from "../../utils/Methods";
 import { dialogPaperSx, closeBtnSx, btnOutlineSx } from "../../Comps/SomeAttrs";
 
-export default function InvoiceActionsDialog({ open, onClose, invoice, onPaymentSuccess }) {
+import { useConfirm } from "../../hooks/useConfirm"; // ✅ عدّل المسار
+import { useToast } from "../../hooks/useToast"; // ✅ عدّل المسار
+import { getErrorMessage } from "../../api/apiError"; // ✅ عدّل المسار
+import { FullDeleteInvoice } from "../../api/Invoice.api"; // ✅
+
+function isAdminRole() {
+    return String(localStorage.getItem("role") || "").toLowerCase() === "admin";
+}
+
+export default function InvoiceActionsDialog({
+    open,
+    onClose,
+    invoice,
+    onPaymentSuccess,
+    onDeleted, // ✅ اختياري: عشان تعمل refetch/تحديث
+}) {
     const [payOpen, setPayOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const isAdmin = isAdminRole();
+    const confirm = useConfirm();
+    const showToast = useToast();
 
     if (!invoice) return null;
+
+    const handleFullDelete = async () => {
+        const ok = await confirm({
+            title: "حذف نهائي",
+            message: `متأكد أنك تريد حذف الفاتورة #${invoice.invoiceId} نهائيًا؟ هذا الإجراء لا يمكن التراجع عنه.`,
+            confirmText: "حذف",
+            cancelText: "إلغاء",
+            danger: true,
+            icon: <DeleteOutlineIcon />,
+        });
+
+        if (!ok) return;
+
+        try {
+            setDeleting(true);
+            await FullDeleteInvoice(invoice.invoiceId);
+
+            showToast({
+                message: "تم حذف الفاتورة نهائيًا",
+                icon: <DeleteOutlineIcon />,
+                severity: "success",
+                duration: 2000,
+            });
+
+            onClose?.();
+            onDeleted?.(invoice.invoiceId);
+        } catch (err) {
+            showToast({
+                message: getErrorMessage(err),
+                icon: <DeleteOutlineIcon />,
+                severity: "error",
+                duration: 2500,
+            });
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     return (
         <>
             <Dialog
                 open={open}
-                onClose={onClose}
+                onClose={deleting ? undefined : onClose}
                 fullWidth
                 maxWidth="xs"
                 PaperProps={{ sx: dialogPaperSx }}
@@ -44,7 +103,11 @@ export default function InvoiceActionsDialog({ open, onClose, invoice, onPayment
                         </Typography>
                     </Box>
 
-                    <IconButton onClick={onClose} sx={closeBtnSx}>
+                    <IconButton
+                        onClick={onClose}
+                        disabled={deleting}
+                        sx={closeBtnSx}
+                    >
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
@@ -57,6 +120,7 @@ export default function InvoiceActionsDialog({ open, onClose, invoice, onPayment
                         startIcon={<Payments />}
                         variant="contained"
                         onClick={() => setPayOpen(true)}
+                        disabled={deleting}
                         sx={{
                             justifyContent: "space-between",
                             borderRadius: 2,
@@ -71,6 +135,37 @@ export default function InvoiceActionsDialog({ open, onClose, invoice, onPayment
                         تحصيل دفعة
                     </Button>
 
+                    {/* ✅ زر الحذف للأدمن فقط */}
+                    {isAdmin && (
+                        <Button
+                            fullWidth
+                            startIcon={
+                                deleting ? (
+                                    <CircularProgress size={16} />
+                                ) : (
+                                    <DeleteOutlineIcon />
+                                )
+                            }
+                            variant="contained"
+                            onClick={handleFullDelete}
+                            disabled={deleting}
+                            sx={{
+                                mt: 1.5,
+                                justifyContent: "space-between",
+                                borderRadius: 2,
+                                py: 1.2,
+                                bgcolor: "rgba(239,68,68,0.16)",
+                                border: "1px solid rgba(239,68,68,0.30)",
+                                color: "#e5e7eb",
+                                "&:hover": { bgcolor: "rgba(239,68,68,0.24)" },
+                                textTransform: "none",
+                                fontWeight: 900,
+                            }}
+                        >
+                            {deleting ? "جاري الحذف..." : "حذف نهائي"}
+                        </Button>
+                    )}
+
                     <Typography
                         sx={{ mt: 2, color: "text.secondary", fontSize: 12 }}
                     >
@@ -83,13 +178,13 @@ export default function InvoiceActionsDialog({ open, onClose, invoice, onPayment
                         onClick={onClose}
                         variant="outlined"
                         sx={btnOutlineSx}
+                        disabled={deleting}
                     >
                         إغلاق
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Dialog تحصيل دفعة */}
             <InvoicePaymentDialog
                 open={payOpen}
                 onClose={() => setPayOpen(false)}
