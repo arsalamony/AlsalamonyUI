@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Link from "@mui/material/Link";
 import {
     Box,
     Button,
@@ -163,6 +165,54 @@ export default function Records() {
         }
     };
 
+    const navigate = useNavigate();
+
+    const renderDescription = (desc) => {
+        const text = String(desc ?? "");
+
+        // يلقط: "فاتوره رقم 1114" أو "فاتورة رقم 1114" (مع اختلاف الهاء/ة)
+        const re = /((?:فاتور(?:ة|ه)|فاتوره)\s*رقم\s*:?\s*)(\d+)/;
+        const m = re.exec(text);
+
+        // لو مش وصف فاتورة، رجّعه عادي
+        if (!m) {
+            return (
+                <Typography sx={{ fontWeight: 700, color: "#e5e7eb" }}>
+                    {text}
+                </Typography>
+            );
+        }
+
+        const full = m[0]; // "فاتوره رقم 1114"
+        const prefix = m[1]; // "فاتوره رقم "
+        const invoiceNo = m[2]; // "1114"
+
+        const before = text.slice(0, m.index);
+        const after = text.slice(m.index + full.length);
+
+        return (
+            <Typography sx={{ fontWeight: 700, color: "#e5e7eb" }}>
+                {before}
+                {prefix}
+                <Link
+                    component="button"
+                    onClick={() => navigate(`/invoices/${invoiceNo}`)} // ✅ عدّل المسار لو مختلف عندك
+                    sx={{
+                        fontWeight: 900,
+                        color: "#38bdf8",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                        p: 0,
+                        "&:hover": { color: "#22d3ee" },
+                    }}
+                >
+                    {invoiceNo}
+                </Link>
+                {after}
+            </Typography>
+        );
+    };
+
     return (
         <Box sx={{ direction: "rtl" }}>
             {/* Header */}
@@ -296,7 +346,11 @@ export default function Records() {
                                                             color: "#e5e7eb",
                                                         }}
                                                     >
-                                                        {r.description}
+                                                        <TableCell>
+                                                            {renderDescription(
+                                                                r.description,
+                                                            )}
+                                                        </TableCell>{" "}
                                                     </Typography>
                                                 </TableCell>
 

@@ -352,10 +352,10 @@ export default function Payments() {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell sx={thSx}>
-                                            PaymentId
+                                            رقم الدفعة
                                         </TableCell>
                                         <TableCell sx={thSx}>
-                                            InvoiceId
+                                            رقم الفاتورة
                                         </TableCell>
                                         <TableCell align="center" sx={thSx}>
                                             النوع
