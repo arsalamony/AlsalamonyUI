@@ -16,8 +16,9 @@ import InvoiceCreate from "./pages/InvoiceCreate";
 import Payments from "./pages/Payments";
 import { isLoggedIn } from "./utils/authStorage";
 import Records from "./pages/Records";
-import Tasks from './pages/Task/Tasks';
+import Tasks from "./pages/Task/Tasks";
 import InvoiceDetailsPage from "./pages/Invoices/InvoiceDetailsPage";
+import IncomeReport from "./pages/Reports/IncomeReport";
 
 const darkTheme = createTheme({
     palette: {
@@ -144,7 +145,11 @@ function App() {
                             <Route path="/payments" element={<Payments />} />
                             <Route path="/Records" element={<Records />} />
                             <Route path="/Tasks" element={<Tasks />} />
-                            <Route path="/invoices/:invoiceId" element={<InvoiceDetailsPage />} />
+                            <Route
+                                path="/invoices/:invoiceId"
+                                element={<InvoiceDetailsPage />}
+                            />
+                            <Route path="/Reports" element={<IncomeReport />} />
                         </Route>
 
                         {/* default */}

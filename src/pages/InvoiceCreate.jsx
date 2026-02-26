@@ -81,7 +81,7 @@ export default function InvoiceCreate() {
     // ===== State =====
     const [items, setItems] = useState([]);
 
-    const [totalAmount, setTotalAmount] = useState("0");
+    const [totalAmount, setTotalAmount] = useState("");
     const [amountPaid, setAmountPaid] = useState("0");
 
     const [paymentMethod, setPaymentMethod] = useState(""); // هنظبطها بالـ effect
@@ -159,28 +159,43 @@ export default function InvoiceCreate() {
     const errors = useMemo(() => {
         const e = {};
 
-        const t = toNumber(totalAmount);
-        const p = toNumber(amountPaid);
+        const tStr = String(totalAmount ?? "").trim();
+        const pStr = String(amountPaid ?? "").trim();
 
-        if (!Number.isFinite(t) || t < 0)
+        const t = tStr === "" ? NaN : toNumber(tStr);
+        const p = pStr === "" ? NaN : toNumber(pStr);
+
+        // الإجمالي: لو المستخدم كتب قيمة -> لازم تكون رقم >= 0
+        if (tStr !== "" && (!Number.isFinite(t) || t < 0)) {
             e.totalAmount = "الإجمالي لازم يكون رقم 0 أو أكبر";
-        if (!Number.isFinite(p) || p < 0)
-            e.amountPaid = "المدفوع لازم يكون رقم 0 أو أكبر";
-
-        // لو مفيش items يبقى لازم إجمالي > 0 (دين/خدمة)
-        if (Number(totalAmount) <= 0) {
-            if (!Number.isFinite(t) || t <= 0)
-                e.totalAmount = "السعر النهائي كام بعد الخصومات والكسور";
         }
 
-        // مجهول: لازم يدفع كامل
+        // المدفوع: لو المستخدم كتب قيمة -> لازم تكون رقم >= 0
+        if (pStr !== "" && (!Number.isFinite(p) || p < 0)) {
+            e.amountPaid = "المدفوع لازم يكون رقم 0 أو أكبر";
+        }
+
+        // لو مفيش items: لازم المستخدم يكتب الإجمالي (مسموح 0)
+        if (items.length === 0) {
+            if (!Number.isFinite(t)) {
+                e.totalAmount = "السعر النهائي كام بعد الخصومات والكسور";
+            }
+        }
+
+        // مجهول: لازم يدفع كامل (ويلزم إدخال القيمتين)
         if (isAnonymous) {
+            if (!Number.isFinite(t))
+                e.totalAmount = e.totalAmount ?? "اكتب الإجمالي";
+            if (!Number.isFinite(p))
+                e.amountPaid = e.amountPaid ?? "اكتب المدفوع";
+
             if (Number.isFinite(t) && Number.isFinite(p)) {
-                if (Math.abs(p - t) > 0.01)
+                if (Math.abs(p - t) > 0.01) {
                     e.amountPaid = "للمجهول لازم يكون المدفوع = الإجمالي";
+                }
             }
         } else {
-            // عميل: جزئي مسموح لكن لا يتجاوز الإجمالي
+            // عميل: جزئي مسموح لكن لا يتجاوز الإجمالي (لو الاتنين موجودين)
             if (Number.isFinite(t) && Number.isFinite(p) && p - t > 0.01) {
                 e.amountPaid = "المدفوع لا يمكن أن يتجاوز الإجمالي";
             }
@@ -192,6 +207,7 @@ export default function InvoiceCreate() {
                 e.items = "يوجد عنصر بدون منتج";
                 break;
             }
+
             const qty = toNumber(it.qty);
             const price = toNumber(it.pricePerUnit);
 
@@ -370,7 +386,7 @@ export default function InvoiceCreate() {
                             : "1px solid rgba(56,189,248,0.25)",
                         color: "#e5e7eb",
                         fontWeight: 800,
-                        fontSize:"3em"
+                        fontSize: "3em",
                     }}
                 />
 

@@ -19,6 +19,7 @@ import { useTheme } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PaymentsIcon from "@mui/icons-material/Payments";
+import InsightsIcon from "@mui/icons-material/Insights";
 import {
     Add,
     ExpandLess,
@@ -63,6 +64,7 @@ const navItems = [
     { label: "الدفعات والحساب", to: "/payments", icon: <PaymentsIcon /> },
     { label: "التسجيلات", to: "/Records", icon: <Notes /> },
     { label: "المهمام", to: "/Tasks", icon: <Task /> },
+    { label: "التقارير", to: "/Reports", icon: <InsightsIcon /> },
 ];
 
 export default function DashboardLayout() {
