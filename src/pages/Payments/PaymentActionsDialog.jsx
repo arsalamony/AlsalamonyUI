@@ -8,16 +8,20 @@ import {
     Button,
     DialogActions,
     Stack,
+    CircularProgress,
 } from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useNavigate } from "react-router-dom";
 
 import { useConfirm } from "../../hooks/useConfirm";
 import { useToast } from "../../hooks/useToast";
 import { dialogPaperSx, closeBtnSx, btnOutlineSx } from "../../Comps/SomeAttrs";
-import { finshPayment } from "../../api/payment.api";
+import { finshPayment, deletePayment } from "../../api/payment.api";
+import { getErrorMessage } from "../../api/apiError";
+import { useState } from "react";
 
 export default function PaymentActionsDialog({
     open,
@@ -32,13 +36,14 @@ export default function PaymentActionsDialog({
     const role = (localStorage.getItem("role") || "").toLowerCase();
     const isAdmin = role === "admin";
 
+    const [busy, setBusy] = useState(false);
+
     if (!payment) return null;
 
-    // ✅ ممكن يجي invoiceId أو InvoiceId
-    const invoiceId =
-        payment.invoiceId ?? payment.InvoiceId ?? null;
-
+    const invoiceId = payment.invoiceId ?? payment.InvoiceId ?? null;
     const hasInvoice = Number(invoiceId) > 0;
+
+    const finshed = Boolean(payment.finshed ?? payment.Finshed);
 
     const goToInvoiceDetails = () => {
         if (!hasInvoice) return;
@@ -55,26 +60,73 @@ export default function PaymentActionsDialog({
             danger: false,
             icon: <DoneIcon />,
         });
-
         if (!ok) return;
 
-        await finshPayment(payment.paymentId);
+        try {
+            setBusy(true);
+            await finshPayment(payment.paymentId);
 
-        showToast({
-            message: "تم تخليص الدفعة",
-            icon: <DoneIcon />,
-            severity: "success",
-            duration: 2000,
+            showToast({
+                message: "تم تخليص الدفعة",
+                icon: <DoneIcon />,
+                severity: "success",
+                duration: 2000,
+            });
+
+            onClose?.();
+            onSuccess?.();
+        } catch (err) {
+            showToast({
+                message: getErrorMessage(err),
+                icon: <DoneIcon />,
+                severity: "error",
+                duration: 2500,
+            });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        const ok = await confirm({
+            title: "حذف الدفعة",
+            message: `متأكد أنك تريد حذف الدفعة رقم #${payment.paymentId}؟`,
+            confirmText: "حذف",
+            cancelText: "إلغاء",
+            danger: true,
+            icon: <DeleteOutlineIcon />,
         });
+        if (!ok) return;
 
-        onClose?.();
-        onSuccess?.();
+        try {
+            setBusy(true);
+            await deletePayment(payment.paymentId);
+
+            showToast({
+                message: "تم حذف الدفعة",
+                icon: <DeleteOutlineIcon />,
+                severity: "success",
+                duration: 2000,
+            });
+
+            onClose?.();
+            onSuccess?.();
+        } catch (err) {
+            showToast({
+                message: getErrorMessage(err),
+                icon: <DeleteOutlineIcon />,
+                severity: "error",
+                duration: 2500,
+            });
+        } finally {
+            setBusy(false);
+        }
     };
 
     return (
         <Dialog
             open={open}
-            onClose={onClose}
+            onClose={busy ? undefined : onClose}
             fullWidth
             maxWidth="xs"
             PaperProps={{ sx: dialogPaperSx }}
@@ -83,7 +135,7 @@ export default function PaymentActionsDialog({
                 <Typography sx={{ fontWeight: 900, flex: 1 }}>
                     إجراءات الدفعة #{payment.paymentId}
                 </Typography>
-                <IconButton onClick={onClose} sx={closeBtnSx}>
+                <IconButton onClick={onClose} disabled={busy} sx={closeBtnSx}>
                     <CloseIcon />
                 </IconButton>
             </DialogTitle>
@@ -92,13 +144,20 @@ export default function PaymentActionsDialog({
 
             <DialogContent sx={{ pt: 2 }}>
                 <Stack spacing={1.25}>
-                    {/* ✅ زر تخليص الدفعة (Admin فقط) */}
-                    {isAdmin ? (
+                    {/* ✅ تخليص (Admin فقط) */}
+                    {isAdmin && (
                         <Button
                             fullWidth
-                            startIcon={<DoneIcon />}
+                            startIcon={
+                                busy ? (
+                                    <CircularProgress size={16} />
+                                ) : (
+                                    <DoneIcon />
+                                )
+                            }
                             variant="contained"
                             onClick={settlePayment}
+                            disabled={busy || finshed}
                             sx={{
                                 justifyContent: "space-between",
                                 borderRadius: 2,
@@ -111,21 +170,18 @@ export default function PaymentActionsDialog({
                                 fontWeight: 800,
                             }}
                         >
-                            تخليص الدفعة
+                            {finshed ? "الدفعة مُخلصة بالفعل" : "تخليص الدفعة"}
                         </Button>
-                    ) : (
-                        <Typography sx={{ color: "text.secondary", fontSize: 13 }}>
-                            لا توجد إجراءات متاحة لك.
-                        </Typography>
                     )}
 
-                    {/* ✅ زر تفاصيل الفاتورة (يظهر فقط لو الدفعة مرتبطة بفاتورة) */}
+                    {/* ✅ تفاصيل الفاتورة (لو مرتبطة) */}
                     {hasInvoice && (
                         <Button
                             fullWidth
                             startIcon={<ReceiptLongIcon />}
                             variant="contained"
                             onClick={goToInvoiceDetails}
+                            disabled={busy}
                             sx={{
                                 justifyContent: "space-between",
                                 borderRadius: 2,
@@ -141,11 +197,54 @@ export default function PaymentActionsDialog({
                             تفاصيل الفاتورة
                         </Button>
                     )}
+
+                    {/* ✅ حذف (Admin فقط) */}
+                    {isAdmin && (
+                        <Button
+                            fullWidth
+                            startIcon={
+                                busy ? (
+                                    <CircularProgress size={16} />
+                                ) : (
+                                    <DeleteOutlineIcon />
+                                )
+                            }
+                            variant="contained"
+                            onClick={handleDelete}
+                            disabled={busy}
+                            sx={{
+                                justifyContent: "space-between",
+                                borderRadius: 2,
+                                py: 1.2,
+                                bgcolor: "rgba(239,68,68,0.16)",
+                                border: "1px solid rgba(239,68,68,0.30)",
+                                color: "#e5e7eb",
+                                "&:hover": { bgcolor: "rgba(239,68,68,0.24)" },
+                                textTransform: "none",
+                                fontWeight: 900,
+                            }}
+                        >
+                            حذف الدفعة
+                        </Button>
+                    )}
+
+                    {!isAdmin && !hasInvoice && (
+                        <Typography
+                            sx={{ color: "text.secondary", fontSize: 13 }}
+                        >
+                            لا توجد إجراءات متاحة لك.
+                        </Typography>
+                    )}
                 </Stack>
             </DialogContent>
 
             <DialogActions sx={{ p: 2 }}>
-                <Button onClick={onClose} variant="outlined" sx={btnOutlineSx}>
+                <Button
+                    onClick={onClose}
+                    variant="outlined"
+                    sx={btnOutlineSx}
+                    disabled={busy}
+                >
                     إغلاق
                 </Button>
             </DialogActions>

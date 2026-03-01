@@ -19,6 +19,7 @@ import Records from "./pages/Records";
 import Tasks from "./pages/Task/Tasks";
 import InvoiceDetailsPage from "./pages/Invoices/InvoiceDetailsPage";
 import IncomeReport from "./pages/Reports/IncomeReport";
+import AllPaymentsPage from "./pages/Payments/AllPayments";
 
 const darkTheme = createTheme({
     palette: {
@@ -150,6 +151,7 @@ function App() {
                                 element={<InvoiceDetailsPage />}
                             />
                             <Route path="/Reports" element={<IncomeReport />} />
+                            <Route path="/AllPayments" element={<AllPaymentsPage />} />
                         </Route>
 
                         {/* default */}

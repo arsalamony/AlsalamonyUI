@@ -18,6 +18,26 @@ export async function addPaymentByAdmin(payload) {
     return res.data;
 }
 
+// GET /Payment/GetAll?PageNo=1&PageSize=10
+export async function getAllPaymentsPaged(pageNo = 1, pageSize = 10) {
+    const res = await http.get("/Payment/GetAll", {
+        params: { PageNo: Number(pageNo), PageSize: Number(pageSize) },
+    });
+    return res.data; // PaymentViewResponse[]
+}
+
+// DELETE /Payment/Delete/{paymentId}
+export async function deletePayment(paymentId) {
+    const res = await http.delete(`/Payment/Delete/${paymentId}`);
+    return res.data;
+}
+
+// ✅ جديد: عدد الدفعات
+export async function getPaymentNo() {
+    const res = await http.get("/Payment/PaymentNo");
+    return res.data; // number
+}
+
 export async function finshAllPayment(userId) {
     const res = await http.post(`/Payment/FinshAllPayment/${userId}`);
     return res.data;
