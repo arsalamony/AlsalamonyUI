@@ -75,6 +75,14 @@ function aggregateMonthly(daily) {
 
 function applyRange(data, rangeDays) {
     if (rangeDays === "all") return data;
+
+    // ✅ هذا الشهر
+    if (rangeDays === "thisMonth") {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1); // أول يوم في الشهر
+        return data.filter((x) => new Date(x.date) >= start);
+    }
+
     const n = Number(rangeDays);
     if (!Number.isFinite(n) || n <= 0) return data;
 
@@ -88,7 +96,10 @@ function applyRange(data, rangeDays) {
 function formatXAxisDate(d, mode) {
     const dt = new Date(d);
     if (mode === "monthly") {
-        return dt.toLocaleDateString("ar-EG", { year: "numeric", month: "short" });
+        return dt.toLocaleDateString("ar-EG", {
+            year: "numeric",
+            month: "short",
+        });
     }
     return dt.toLocaleDateString("ar-EG", { day: "2-digit", month: "2-digit" });
 }
@@ -96,7 +107,10 @@ function formatXAxisDate(d, mode) {
 function tooltipLabel(d, mode) {
     const dt = new Date(d);
     if (mode === "monthly") {
-        return dt.toLocaleDateString("ar-EG", { year: "numeric", month: "long" });
+        return dt.toLocaleDateString("ar-EG", {
+            year: "numeric",
+            month: "long",
+        });
     }
     return dt.toLocaleDateString("ar-EG", {
         weekday: "long",
@@ -181,7 +195,7 @@ function calcYDomain(values) {
 
 export default function IncomeReport() {
     const [mode, setMode] = useState("daily"); // daily | monthly
-    const [range, setRange] = useState("30"); // all | 7 | 30 | 90 | 365
+    const [range, setRange] = useState("30"); // all | 7 | 30 | 90 | 365 | thisMonth
 
     const [rawDaily, setRawDaily] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -309,13 +323,18 @@ export default function IncomeReport() {
                         <MenuItem value="90">آخر 90 يوم</MenuItem>
                         <MenuItem value="365">آخر سنة</MenuItem>
                         <MenuItem value="all">الكل</MenuItem>
+                        <MenuItem value="thisMonth">هذا الشهر</MenuItem>
                     </Select>
                 </FormControl>
 
                 <Button
                     variant="outlined"
                     startIcon={
-                        refreshing ? <CircularProgress size={16} /> : <ReplayIcon />
+                        refreshing ? (
+                            <CircularProgress size={16} />
+                        ) : (
+                            <ReplayIcon />
+                        )
                     }
                     onClick={() => fetchData({ silent: true })}
                     disabled={loading || refreshing}
@@ -334,7 +353,11 @@ export default function IncomeReport() {
                         useFlexGap
                         sx={{ mb: 2 }}
                     >
-                        <StatChip icon={<InsightsIcon />} label="عدد النقاط" value={stats.n} />
+                        <StatChip
+                            icon={<InsightsIcon />}
+                            label="عدد النقاط"
+                            value={stats.n}
+                        />
                         <StatChip
                             icon={<TrendingUpIcon />}
                             label="إجمالي الدخل"
@@ -408,7 +431,12 @@ export default function IncomeReport() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart
                                         data={chartDataWithAvg}
-                                        margin={{ top: 10, right: 20, left: 5, bottom: 10 }}
+                                        margin={{
+                                            top: 10,
+                                            right: 20,
+                                            left: 5,
+                                            bottom: 10,
+                                        }}
                                     >
                                         <CartesianGrid
                                             stroke="rgba(148,163,184,0.12)"
@@ -416,19 +444,32 @@ export default function IncomeReport() {
                                         />
                                         <XAxis
                                             dataKey="date"
-                                            tickFormatter={(d) => formatXAxisDate(d, mode)}
+                                            tickFormatter={(d) =>
+                                                formatXAxisDate(d, mode)
+                                            }
                                             stroke="rgba(148,163,184,0.6)"
                                             tick={{ fontSize: 12 }}
                                             minTickGap={18}
                                         />
                                         <YAxis
-                                            tickFormatter={(v) => formatMoney(v)}
+                                            tickFormatter={(v) =>
+                                                formatMoney(v)
+                                            }
                                             stroke="rgba(148,163,184,0.6)"
                                             tick={{ fontSize: 12 }}
                                             domain={yDomain}
                                             allowDataOverflow
                                         />
-                                        <Tooltip content={<CustomTooltip mode={mode} active={undefined} payload={undefined} label={undefined} />} />
+                                        <Tooltip
+                                            content={
+                                                <CustomTooltip
+                                                    mode={mode}
+                                                    active={undefined}
+                                                    payload={undefined}
+                                                    label={undefined}
+                                                />
+                                            }
+                                        />
 
                                         {/* الدخل */}
                                         <Area
@@ -487,11 +528,15 @@ function LegendItem({ color, text, dashed = false }) {
                 sx={{
                     width: 28,
                     height: 0,
-                    borderTop: dashed ? `2px dashed ${color}` : `3px solid ${color}`,
+                    borderTop: dashed
+                        ? `2px dashed ${color}`
+                        : `3px solid ${color}`,
                     borderRadius: 2,
                 }}
             />
-            <Typography sx={{ color: "#e5e7eb", fontSize: 13, fontWeight: 700 }}>
+            <Typography
+                sx={{ color: "#e5e7eb", fontSize: 13, fontWeight: 700 }}
+            >
                 {text}
             </Typography>
         </Stack>
@@ -522,8 +567,16 @@ function CustomTooltip({ active, payload, label, mode }) {
             </Typography>
 
             <Stack spacing={0.5}>
-                <RowLine label="الدخل" value={formatMoney(income)} color="#38bdf8" />
-                <RowLine label="المتوسط حتى هذا التاريخ" value={formatMoney(avg)} color="#f59e0b" />
+                <RowLine
+                    label="الدخل"
+                    value={formatMoney(income)}
+                    color="#38bdf8"
+                />
+                <RowLine
+                    label="المتوسط حتى هذا التاريخ"
+                    value={formatMoney(avg)}
+                    color="#f59e0b"
+                />
             </Stack>
         </Box>
     );
@@ -536,7 +589,9 @@ function RowLine({ label, value, color, dashed = false }) {
                 sx={{
                     width: 18,
                     height: 0,
-                    borderTop: dashed ? `2px dashed ${color}` : `3px solid ${color}`,
+                    borderTop: dashed
+                        ? `2px dashed ${color}`
+                        : `3px solid ${color}`,
                     borderRadius: 2,
                     flexShrink: 0,
                 }}
@@ -544,7 +599,9 @@ function RowLine({ label, value, color, dashed = false }) {
             <Typography sx={{ color: "text.secondary", fontSize: 12, flex: 1 }}>
                 {label}
             </Typography>
-            <Typography sx={{ color: "#e5e7eb", fontWeight: 800, fontSize: 12 }}>
+            <Typography
+                sx={{ color: "#e5e7eb", fontWeight: 800, fontSize: 12 }}
+            >
                 {value}
             </Typography>
         </Stack>
