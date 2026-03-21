@@ -2,9 +2,8 @@ import { PaymentMethodsContext } from "../contexts/PaymentMethodsContext";
 import { useMemo } from "react";
 
 
-// ✅ ثابتة (زي ما قلت)
 const STATIC_PAYMENT_METHODS = [
-    { value: 1, label: "كاش" },
+    { value: 1, label: "نقدي" },
     { value: 2, label: "فودافون كاش المحل" },
     { value: 3, label: "الأستاذ محمد" },
 ];

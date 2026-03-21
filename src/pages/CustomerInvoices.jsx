@@ -159,7 +159,7 @@ export default function CustomerInvoices() {
                         WebkitTextFillColor: "transparent",
                     }}
                 >
-                    فواتير العميل غير المسددة
+                    فواتير العميل
                 </Typography>
 
                 <Box sx={{ flex: 1 }} />

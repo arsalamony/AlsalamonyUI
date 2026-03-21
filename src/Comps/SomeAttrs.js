@@ -280,7 +280,7 @@ export const moreBtnSx = {
 
 
 export function amountChipSx(p) {
-    if (p.added && p.paymentMethod === "كاش") {
+    if (p.added && (p.paymentMethod === "كاش" || p.paymentMethod === "نقدي")) {
         return {
             color: "#a7f3d0",
             bgcolor: "rgba(34,197,94,0.14)",

@@ -145,7 +145,7 @@ export default function Payments() {
 
         const cashCollection =
             filteredPayments
-                .filter((p) => p.added && p.paymentMethod === "كاش")
+                .filter((p) => p.added && (p.paymentMethod === "كاش" || p.paymentMethod === "نقدي"))
                 .reduce((s, p) => s + Number(p.amount ?? 0), 0) - deduction;
 
         const total = collection + deduction;
@@ -267,13 +267,6 @@ export default function Payments() {
 
             {/* Summary */}
             <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid size={{ xs: 12, md: 3 }}>
-                    <SummaryCard
-                        title="المجموع الكلي"
-                        value={formatMoney(sums.total)}
-                        tone="info"
-                    />
-                </Grid>
                 <Grid size={{ xs: 12, md: 3 }}>
                     <SummaryCard
                         title="مجموع التحصيل"
