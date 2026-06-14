@@ -30,15 +30,15 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 
-import { useConfirm } from "../hooks/useConfirm";
-import { useToast } from "../hooks/useToast";
-import { formatDateTime, formatMoney } from "../utils/Methods";
+import { useConfirm } from "@/hooks/useConfirm";
+import { useToast } from "@/hooks/useToast";
+import { formatDateTime, formatMoney } from "@/utils/Methods";
 
-import PaymentAddDialog from "./Payments/PaymentAddDialog";
-import SettleAccountDialog from "./Payments/SettleAccountDialog";
-import PaymentActionsDialog from "./Payments/PaymentActionsDialog";
-import PaymentDetailsDialog from "./Payments/PaymentDetailsDialog";
-import SummaryCard from "../Comps/SummaryCard";
+import PaymentAddDialog from "@/pages/payments/PaymentAddDialog";
+import SettleAccountDialog from "@/pages/payments/SettleAccountDialog";
+import PaymentActionsDialog from "@/pages/payments/PaymentActionsDialog";
+import PaymentDetailsDialog from "@/pages/payments/PaymentDetailsDialog";
+import SummaryCard from "@/components/SummaryCard";
 import {
     amountChipSx,
     btnPrimarySx,
@@ -50,10 +50,10 @@ import {
     moreBtnSx,
     tableScrollSx,
     thSx,
-} from "../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
-import { useUsers } from "../hooks/useUsers"; // ✅
-import { getPaymentsByUserId, finshAllPayment } from "../api/payment.api"; // ✅
+import { useUsers } from "@/hooks/useUsers"; // ✅
+import { getPaymentsByUserId, finshAllPayment } from "@/api/payment.api"; // ✅
 
 export default function Payments() {
     const confirm = useConfirm();

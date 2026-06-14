@@ -19,7 +19,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import NotesIcon from "@mui/icons-material/Notes";
 import BlockIcon from "@mui/icons-material/Block";
 
-import { btnOutlineSx, inputSx } from "../../Comps/SomeAttrs";
+import { btnOutlineSx, inputSx } from "@/styles/uiStyles";
 
 const dialogPaperSx = {
     direction: "rtl",

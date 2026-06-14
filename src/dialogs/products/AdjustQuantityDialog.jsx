@@ -11,40 +11,42 @@ import {
     IconButton,
     TextField,
     InputAdornment,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Stack,
     CircularProgress,
+    FormControl,
+    FormLabel,
+    RadioGroup,
+    FormControlLabel,
+    Radio,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import PersonIcon from "@mui/icons-material/Person";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import NumbersIcon from "@mui/icons-material/Numbers";
 
-import ConfirmDialog from "../ConfirmDialog"; 
-import { useUsers } from "../../hooks/useUsers";
-import { TransUserProductQuantity } from "../../api/userProduct.api";
-import { useToast } from "../../hooks/useToast"; 
-import { btnOutlineSx, closeBtnSx, dialogPaperSx, inputSx, primaryBtnSx, selectSx } from "../../Comps/SomeAttrs";
+import ConfirmDialog from "@/dialogs/ConfirmDialog";
+import { useToast } from "../../hooks/useToast";
+import { updateUserProductQuantity } from "../../api/userProduct.api";
+import { closeBtnSx, btnOutlineSx, inputSx, dialogPaperSx, dangerBtnSx, successBtnSx } from "@/styles/uiStyles";
 
-// function isAdminRole() {
-//     return String(localStorage.getItem("role") || "").toLowerCase() === "admin";
-// }
+function parseIntSafe(v) {
+    const s = String(v ?? "").trim();
+    if (!s) return NaN;
+    const n = Number(s);
+    return n;
+}
 
-export function TransferDialog({
+export default function AdjustQuantityDialog({
     open,
     onClose,
     product, // { productId, productName, quantity }
-    currentUserId, // المستخدم المعروض مخزونه (على الداشبورد)
-    onTransferred, // callback لتحديث الجدول بعد نجاح التحويل
+    targetUserId, // المستخدم اللي هتزوّد/تنقص له (اللي ظاهر على الداشبورد)
+    onAdjusted, // callback لتحديث UI بعد النجاح
 }) {
     const showToast = useToast();
-    const { users, usersLoading } = useUsers();
 
-    const [receiverId, setReceiverId] = useState("");
+    const [mode, setMode] = useState("add"); // add | sub
     const [qty, setQty] = useState("");
     const [touched, setTouched] = useState(false);
 
@@ -53,51 +55,40 @@ export function TransferDialog({
 
     const availableQty = Number(product?.quantity ?? 0);
 
-    // reset on open/product change
     useEffect(() => {
         if (!open) return;
-        setReceiverId("");
+        setMode("add");
         setQty("");
         setTouched(false);
         setConfirmOpen(false);
         setSubmitting(false);
     }, [open, product?.productId]);
 
-    // receivers list: استبعد المستخدم الحالي (مش منطقي يحول لنفسه)
-    const receivers = useMemo(() => {
-        return (users || []).filter(
-            (u) => Number(u.userId) !== Number(currentUserId),
-        );
-    }, [users, currentUserId]);
+    const qtyValue = useMemo(() => parseIntSafe(qty), [qty]);
 
-    // default receiver (أول واحد)
-    useEffect(() => {
-        if (!open) return;
-        if (receiverId) return;
-        if (usersLoading) return;
-        const first = receivers?.[0];
-        if (first?.userId) setReceiverId(String(first.userId));
-    }, [open, receiverId, usersLoading, receivers]);
-
-    const qtyValue = useMemo(() => {
-        const v = Number(String(qty).trim());
-        return v;
-    }, [qty]);
+    const signedQty = useMemo(() => {
+        if (!Number.isFinite(qtyValue)) return NaN;
+        const q = Math.trunc(qtyValue);
+        return mode === "sub" ? -Math.abs(q) : Math.abs(q);
+    }, [qtyValue, mode]);
 
     const error = useMemo(() => {
         if (!touched) return "";
 
-        if (!receiverId) return "اختر المستخدم المستلم";
         if (!qty) return "أدخل الكمية";
         if (!Number.isFinite(qtyValue) || qtyValue <= 0)
             return "الكمية لازم تكون رقم أكبر من صفر";
         if (!Number.isInteger(qtyValue)) return "الكمية لازم تكون رقم صحيح";
-        if (qtyValue > availableQty)
-            return `لا يمكن أن تتجاوز المتاح (${availableQty})`;
-        return "";
-    }, [touched, receiverId, qty, qtyValue, availableQty]);
 
-    const canSave = !error && availableQty > 0 && !submitting;
+        // لو تنقيص: متسمحش يقل عن 0 (حسب المتاح عند المستخدم)
+        if (mode === "sub" && qtyValue > availableQty) {
+            return `لا يمكن أن تتجاوز المتاح للتنقيص (${availableQty})`;
+        }
+
+        return "";
+    }, [touched, qty, qtyValue, mode, availableQty]);
+
+    const canSave = !error && !submitting;
 
     const openConfirm = (e) => {
         e.preventDefault();
@@ -106,37 +97,47 @@ export function TransferDialog({
         setConfirmOpen(true);
     };
 
-    const doTransfer = async () => {
+    const doAdjust = async () => {
         const payload = {
             productId: Number(product.productId),
-            userId: Number(receiverId), // المستلم
-            qty: Number(qtyValue),
+            userId: Number(targetUserId),
+            qty: Number(signedQty), // ✅ موجب أو سالب
         };
 
         try {
             setSubmitting(true);
-            await TransUserProductQuantity(payload);
+            await updateUserProductQuantity(payload);
 
             showToast({
-                message: "تم التحويل بنجاح",
-                icon: <SwapHorizIcon />,
+                message:
+                    mode === "add" ? "تم التزويد بنجاح" : "تم التنقيص بنجاح",
+                icon:
+                    mode === "add" ? (
+                        <AddCircleOutlineIcon />
+                    ) : (
+                        <RemoveCircleOutlineIcon />
+                    ),
                 severity: "success",
                 duration: 2000,
             });
 
-            // ✅ تحديث UI: نقص من المعروض حالياً
-            onTransferred?.({
+            // ✅ حدث UI
+            onAdjusted?.({
                 productId: payload.productId,
-                qty: payload.qty,
-                receiverUserId: payload.userId,
+                qtyDelta: payload.qty,
             });
 
             setConfirmOpen(false);
             onClose?.();
         } catch {
             showToast({
-                message: "فشل التحويل. حاول مرة أخرى.",
-                icon: <SwapHorizIcon />,
+                message: "فشل تنفيذ العملية. حاول مرة أخرى.",
+                icon:
+                    mode === "add" ? (
+                        <AddCircleOutlineIcon />
+                    ) : (
+                        <RemoveCircleOutlineIcon />
+                    ),
                 severity: "error",
                 duration: 2500,
             });
@@ -147,6 +148,11 @@ export function TransferDialog({
     };
 
     if (!product) return null;
+
+    const confirmMsg =
+        mode === "add"
+            ? `هل تريد تزويد ${qtyValue || 0} من "${product.productName}" لهذا المستخدم؟`
+            : `هل تريد تنقيص ${qtyValue || 0} من "${product.productName}" لهذا المستخدم؟`;
 
     return (
         <>
@@ -162,12 +168,12 @@ export function TransferDialog({
                 >
                     <Box sx={{ flex: 1 }}>
                         <Typography sx={{ fontWeight: 900 }}>
-                            تحويل مخزون
+                            تزويد / تنقيص
                         </Typography>
                         <Typography
                             sx={{ color: "text.secondary", fontSize: 13 }}
                         >
-                            {product.productName} — المتاح: {availableQty}
+                            {product.productName} — الحالي: {availableQty}
                         </Typography>
                     </Box>
 
@@ -185,41 +191,37 @@ export function TransferDialog({
                 <DialogContent sx={{ pt: 2 }}>
                     <Box component="form" onSubmit={openConfirm}>
                         <Stack spacing={2}>
-                            <FormControl
-                                fullWidth
-                                sx={selectSx}
-                                disabled={submitting || usersLoading}
-                            >
-                                <InputLabel>المستخدم المستلم</InputLabel>
-                                <Select
-                                    label="المستخدم المستلم"
-                                    value={receiverId}
-                                    onChange={(e) =>
-                                        setReceiverId(e.target.value)
-                                    }
-                                    onBlur={() => setTouched(true)}
-                                    startAdornment={
-                                        <InputAdornment position="start">
-                                            <PersonIcon
-                                                sx={{ color: "text.secondary" }}
-                                            />
-                                        </InputAdornment>
-                                    }
+                            <FormControl disabled={submitting}>
+                                <FormLabel
+                                    sx={{ color: "text.secondary", mb: 1 }}
                                 >
-                                    {receivers.map((u) => (
-                                        <MenuItem
-                                            key={u.userId}
-                                            value={String(u.userId)}
-                                        >
-                                            {u.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
+                                    نوع العملية
+                                </FormLabel>
+
+                                <RadioGroup
+                                    row
+                                    value={mode}
+                                    onChange={(e) => {
+                                        setMode(e.target.value);
+                                        setTouched(true);
+                                    }}
+                                >
+                                    <FormControlLabel
+                                        value="add"
+                                        control={<Radio />}
+                                        label="تزويد"
+                                    />
+                                    <FormControlLabel
+                                        value="sub"
+                                        control={<Radio />}
+                                        label="تنقيص"
+                                    />
+                                </RadioGroup>
                             </FormControl>
 
                             <TextField
                                 fullWidth
-                                label="الكمية المراد تحويلها"
+                                label="الكمية"
                                 value={qty}
                                 onChange={(e) => setQty(e.target.value)}
                                 onBlur={() => setTouched(true)}
@@ -236,7 +238,7 @@ export function TransferDialog({
                                     ),
                                 }}
                                 sx={inputSx}
-                                disabled={submitting || availableQty <= 0}
+                                disabled={submitting}
                             />
                         </Stack>
 
@@ -258,12 +260,14 @@ export function TransferDialog({
                                 startIcon={
                                     submitting ? (
                                         <CircularProgress size={16} />
+                                    ) : mode === "add" ? (
+                                        <AddCircleOutlineIcon />
                                     ) : (
-                                        <SwapHorizIcon />
+                                        <RemoveCircleOutlineIcon />
                                     )
                                 }
                                 disabled={!canSave}
-                                sx={primaryBtnSx}
+                                sx={mode === "add" ? successBtnSx : dangerBtnSx}
                             >
                                 {submitting ? "جاري..." : "حفظ"}
                             </Button>
@@ -274,22 +278,22 @@ export function TransferDialog({
 
             <ConfirmDialog
                 open={confirmOpen}
-                title="تأكيد التحويل"
-                danger={false}
+                title="تأكيد العملية"
+                message={confirmMsg}
+                icon={
+                    mode === "add" ? (
+                        <AddCircleOutlineIcon />
+                    ) : (
+                        <RemoveCircleOutlineIcon />
+                    )
+                }
                 confirmText="تأكيد"
                 cancelText="إلغاء"
                 loading={submitting}
-                icon={<SwapHorizIcon />}
-                message={`هل تريد تحويل ${qtyValue || 0} من "${product.productName}" للمستخدم المحدد؟`}
+                danger={mode === "sub"} // التنقيص نخليه يميل للأحمر
                 onClose={() => (submitting ? null : setConfirmOpen(false))}
-                onConfirm={doTransfer}
+                onConfirm={doAdjust}
             />
         </>
     );
 }
-
-/* styles */
-
-
-
-

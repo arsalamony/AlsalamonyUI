@@ -35,7 +35,7 @@ import { getIncomeReport } from "../../api/report.api";
 import { getErrorMessage } from "../../api/apiError";
 import { formatMoney } from "../../utils/Methods";
 
-import { cardSx, chipSx, btnOutlineSx } from "../../Comps/SomeAttrs";
+import { cardSx, chipSx, btnOutlineSx } from "@/styles/uiStyles";
 
 function toMonthKey(d) {
     const dt = new Date(d);

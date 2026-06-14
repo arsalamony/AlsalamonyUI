@@ -3,7 +3,7 @@ import {
     useRef,
     useState,
 } from "react";
-import ConfirmDialog from "../dailogs/ConfirmDialog";
+import ConfirmDialog from "@/dialogs/ConfirmDialog";
 import { ConfirmDialogContext } from "../contexts/ConfirmDialogContext";
 
 

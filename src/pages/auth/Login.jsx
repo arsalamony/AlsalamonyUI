@@ -9,11 +9,11 @@ import {
     Checkbox,
     Button,
 } from "@mui/material";
-import { useToast } from "../hooks/useToast";
-import { isLoggedIn, saveAuth } from "../utils/authStorage";
-import { loginApi } from "../api/auth.api";
+import { useToast } from "@/hooks/useToast";
+import { isLoggedIn, saveAuth } from "@/utils/authStorage";
+import { loginApi } from "@/api/auth.api";
 import { CheckCircle, ErrorOutline } from "@mui/icons-material";
-import { getErrorMessage } from "../api/apiError";
+import { getErrorMessage } from "@/api/apiError";
 
 export default function Login() {
     const navigate = useNavigate();

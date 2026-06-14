@@ -49,7 +49,7 @@ import {
     thSx,
     tableScrollSx,
     infoBtnSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
 export default function Tasks() {
     const showToast = useToast();

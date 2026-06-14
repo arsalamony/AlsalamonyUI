@@ -1,25 +1,25 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
-import Login from "./pages/Login";
-import DashboardHome from "./pages/DashboardHome";
+import Login from "@/pages/auth/Login";
+import DashboardHome from "@/pages/dashboard/DashboardHome";
 
 import "./App.css";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import CustomersList from "./pages/Customers/CustomersList";
-import CustomerCreate from "./pages/Customers/CustomerCreate";
-import CustomerEdit from "./pages/Customers/CustomerEdit";
+import CustomersList from "@/pages/customers/CustomersList";
+import CustomerCreate from "@/pages/customers/CustomerCreate";
+import CustomerEdit from "@/pages/customers/CustomerEdit";
 import { ConfirmDialogProvider } from "./providers/ConfirmDialogProvider";
 import ToastProvider from "./providers/ToastProvider";
-import CustomerInvoices from "./pages/CustomerInvoices";
-import InvoiceCreate from "./pages/InvoiceCreate";
-import Payments from "./pages/Payments";
+import CustomerInvoices from "@/pages/customers/CustomerInvoices";
+import InvoiceCreate from "@/pages/invoices/InvoiceCreate";
+import Payments from "@/pages/payments/Payments";
 import { isLoggedIn } from "./utils/authStorage";
-import Records from "./pages/Records";
-import Tasks from "./pages/Task/Tasks";
-import InvoiceDetailsPage from "./pages/Invoices/InvoiceDetailsPage";
-import IncomeReport from "./pages/Reports/IncomeReport";
-import AllPaymentsPage from "./pages/Payments/AllPayments";
+import Records from "@/pages/records/Records";
+import Tasks from "@/pages/tasks/Tasks";
+import InvoiceDetailsPage from "@/pages/invoices/InvoiceDetailsPage";
+import IncomeReport from "@/pages/reports/IncomeReport";
+import AllPaymentsPage from "@/pages/payments/AllPayments";
 
 const darkTheme = createTheme({
     palette: {

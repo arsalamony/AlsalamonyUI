@@ -13,10 +13,10 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import InvoicePaymentDialog from "../../pages/Payments/InvoicePaymentDialog";
+import InvoicePaymentDialog from "@/pages/payments/InvoicePaymentDialog";
 import { useState } from "react";
 import { formatMoney } from "../../utils/Methods";
-import { dialogPaperSx, closeBtnSx, btnOutlineSx } from "../../Comps/SomeAttrs";
+import { dialogPaperSx, closeBtnSx, btnOutlineSx } from "@/styles/uiStyles";
 
 import { useConfirm } from "../../hooks/useConfirm"; // ✅ عدّل المسار
 import { useToast } from "../../hooks/useToast"; // ✅ عدّل المسار

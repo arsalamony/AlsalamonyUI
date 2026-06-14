@@ -32,22 +32,22 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-import { useToast } from "../hooks/useToast";
-import { fix2, formatMoney } from "../utils/Methods";
+import { useToast } from "@/hooks/useToast";
+import { fix2, formatMoney } from "@/utils/Methods";
 
-import { useProducts } from "../hooks/useProducts";
-import { usePaymentMethods } from "../hooks/usePaymentMethods";
+import { useProducts } from "@/hooks/useProducts";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 
-import { getErrorMessage } from "../api/apiError";
-import { addInvoice } from "../api/Invoice.api";
+import { getErrorMessage } from "@/api/apiError";
+import { addInvoice } from "@/api/Invoice.api";
 import {
     btnOutlineSx,
     cardSx,
     selectSx,
     inputSx,
     btnSaveSx,
-} from "../Comps/SomeAttrs";
-import { getCustomerById } from "../api/customer.api"; // عدّل المسار حسب عندك
+} from "@/styles/uiStyles";
+import { getCustomerById } from "@/api/customer.api"; // عدّل المسار حسب عندك
 
 export default function InvoiceCreate() {
     const navigate = useNavigate();

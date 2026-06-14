@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useConfirm } from "../../hooks/useConfirm";
 import { useToast } from "../../hooks/useToast";
-import { dialogPaperSx, closeBtnSx, btnOutlineSx } from "../../Comps/SomeAttrs";
+import { dialogPaperSx, closeBtnSx, btnOutlineSx } from "@/styles/uiStyles";
 import { finshPayment, deletePayment } from "../../api/payment.api";
 import { getErrorMessage } from "../../api/apiError";
 import { useState } from "react";

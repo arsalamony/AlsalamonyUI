@@ -24,7 +24,7 @@ import {
     btnSaveSx,
     closeBtnSx,
     dialogPaperSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
 function fmt(d) {
     if (!d) return "—";

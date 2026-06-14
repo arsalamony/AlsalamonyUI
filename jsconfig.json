@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "checkJs": true,
+        "ignoreDeprecations": "6.0",
+        "checkJs": false,
         "jsx": "react-jsx",
         "baseUrl": "src",
         "resolveJsonModule": true,

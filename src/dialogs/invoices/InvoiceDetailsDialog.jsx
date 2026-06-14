@@ -24,7 +24,7 @@ import {
     thSx,
     notesBoxSx,
     btnOutlineSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 import CloseIcon from "@mui/icons-material/Close";
 import { formatDateTime, formatMoney } from "../../utils/Methods";
 

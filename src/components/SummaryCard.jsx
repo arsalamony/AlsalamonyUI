@@ -1,6 +1,6 @@
 import { Card, CardContent, Stack, Box, Typography } from "@mui/material";
 import PaymentsIcon from "@mui/icons-material/Payments";
-import { summaryToneSx, cardSx } from "./SomeAttrs";
+import { summaryToneSx, cardSx } from "@/styles/uiStyles";
 
 export default function SummaryCard({ title, value, tone }) {
     const s = summaryToneSx(tone);

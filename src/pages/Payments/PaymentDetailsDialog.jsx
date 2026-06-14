@@ -12,13 +12,13 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-import InfoLine from "../../Comps/InfoLine";
+import InfoLine from "@/components/InfoLine";
 import {
     dialogPaperSx,
     closeBtnSx,
     notesBoxSx,
     btnOutlineSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 import { formatDateTime, formatMoney } from "../../utils/Methods";
 
 export default function PaymentDetailsDialog({ open, onClose, payment }) {

@@ -22,12 +22,12 @@ import {
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import ReplayIcon from "@mui/icons-material/Replay";
 
-import { useToast } from "../hooks/useToast";
-import { useConfirm } from "../hooks/useConfirm";
-import { getErrorMessage } from "../api/apiError";
-import { formatDateTime } from "../utils/Methods";
+import { useToast } from "@/hooks/useToast";
+import { useConfirm } from "@/hooks/useConfirm";
+import { getErrorMessage } from "@/api/apiError";
+import { formatDateTime } from "@/utils/Methods";
 
-import { getSystemRecords, finishSystemRecord } from "../api/systemRecord.api";
+import { getSystemRecords, finishSystemRecord } from "@/api/systemRecord.api";
 
 // لو عندك SomeAttrs استخدمها، لو مش موجودة سيب اللي تحت
 import {
@@ -36,7 +36,7 @@ import {
     tableScrollSx,
     thSx,
     btnOutlineSx,
-} from "../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
 function isAdminRole() {
     return String(localStorage.getItem("role") || "").toLowerCase() === "admin";

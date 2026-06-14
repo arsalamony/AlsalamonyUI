@@ -26,7 +26,7 @@ import LocalAtmIcon from "@mui/icons-material/LocalAtm";
 import { useToast } from "../../hooks/useToast";
 import { formatMoney, parseAmount } from "../../utils/Methods";
 import { addInvoicePayment } from "../../api/Invoice.api";
-import { dialogPaperSx, closeBtnSx, inputSx, btnOutlineSx } from "../../Comps/SomeAttrs";
+import { dialogPaperSx, closeBtnSx, inputSx, btnOutlineSx } from "@/styles/uiStyles";
 import { usePaymentMethods } from "../../hooks/usePaymentMethods";
 
 export default function InvoicePaymentDialog({

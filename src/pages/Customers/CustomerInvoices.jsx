@@ -28,10 +28,10 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
-import { formatDateTime, formatMoney, sum } from "../utils/Methods";
+import { formatDateTime, formatMoney, sum } from "@/utils/Methods";
 
 // ✅ استدعاء الـ API
-import { getUnpaidInvoicesByCustomer } from "../api/Invoice.api"; // عدّل المسار حسب مشروعك
+import { getUnpaidInvoicesByCustomer } from "@/api/Invoice.api"; // عدّل المسار حسب مشروعك
 import {
     btnOutlineSx,
     cardSx,
@@ -39,9 +39,9 @@ import {
     tableScrollSx,
     thSx,
     remainingChipSx,
-} from "../Comps/SomeAttrs";
-import InvoiceActionsDialog from "../dailogs/InvoiceDialogs/InvoiceActionsDialog";
-import InvoiceDetailsDialog from "../dailogs/InvoiceDialogs/InvoiceDetailsDialog";
+} from "@/styles/uiStyles";
+import InvoiceActionsDialog from "@/dialogs/invoices/InvoiceActionsDialog";
+import InvoiceDetailsDialog from "@/dialogs/invoices/InvoiceDetailsDialog";
 
 export default function CustomerInvoices() {
     const navigate = useNavigate();

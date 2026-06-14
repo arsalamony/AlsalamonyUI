@@ -11,42 +11,40 @@ import {
     IconButton,
     TextField,
     InputAdornment,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
     Stack,
     CircularProgress,
-    FormControl,
-    FormLabel,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import PersonIcon from "@mui/icons-material/Person";
 import NumbersIcon from "@mui/icons-material/Numbers";
 
-import ConfirmDialog from "../../dailogs/ConfirmDialog";
-import { useToast } from "../../hooks/useToast";
-import { updateUserProductQuantity } from "../../api/userProduct.api";
-import { closeBtnSx, btnOutlineSx, inputSx, dialogPaperSx, dangerBtnSx, successBtnSx } from "../../Comps/SomeAttrs";
+import ConfirmDialog from "../ConfirmDialog"; 
+import { useUsers } from "../../hooks/useUsers";
+import { TransUserProductQuantity } from "../../api/userProduct.api";
+import { useToast } from "../../hooks/useToast"; 
+import { btnOutlineSx, closeBtnSx, dialogPaperSx, inputSx, primaryBtnSx, selectSx } from "@/styles/uiStyles";
 
-function parseIntSafe(v) {
-    const s = String(v ?? "").trim();
-    if (!s) return NaN;
-    const n = Number(s);
-    return n;
-}
+// function isAdminRole() {
+//     return String(localStorage.getItem("role") || "").toLowerCase() === "admin";
+// }
 
-export default function AdjustQuantityDialog({
+export function TransferDialog({
     open,
     onClose,
     product, // { productId, productName, quantity }
-    targetUserId, // المستخدم اللي هتزوّد/تنقص له (اللي ظاهر على الداشبورد)
-    onAdjusted, // callback لتحديث UI بعد النجاح
+    currentUserId, // المستخدم المعروض مخزونه (على الداشبورد)
+    onTransferred, // callback لتحديث الجدول بعد نجاح التحويل
 }) {
     const showToast = useToast();
+    const { users, usersLoading } = useUsers();
 
-    const [mode, setMode] = useState("add"); // add | sub
+    const [receiverId, setReceiverId] = useState("");
     const [qty, setQty] = useState("");
     const [touched, setTouched] = useState(false);
 
@@ -55,40 +53,51 @@ export default function AdjustQuantityDialog({
 
     const availableQty = Number(product?.quantity ?? 0);
 
+    // reset on open/product change
     useEffect(() => {
         if (!open) return;
-        setMode("add");
+        setReceiverId("");
         setQty("");
         setTouched(false);
         setConfirmOpen(false);
         setSubmitting(false);
     }, [open, product?.productId]);
 
-    const qtyValue = useMemo(() => parseIntSafe(qty), [qty]);
+    // receivers list: استبعد المستخدم الحالي (مش منطقي يحول لنفسه)
+    const receivers = useMemo(() => {
+        return (users || []).filter(
+            (u) => Number(u.userId) !== Number(currentUserId),
+        );
+    }, [users, currentUserId]);
 
-    const signedQty = useMemo(() => {
-        if (!Number.isFinite(qtyValue)) return NaN;
-        const q = Math.trunc(qtyValue);
-        return mode === "sub" ? -Math.abs(q) : Math.abs(q);
-    }, [qtyValue, mode]);
+    // default receiver (أول واحد)
+    useEffect(() => {
+        if (!open) return;
+        if (receiverId) return;
+        if (usersLoading) return;
+        const first = receivers?.[0];
+        if (first?.userId) setReceiverId(String(first.userId));
+    }, [open, receiverId, usersLoading, receivers]);
+
+    const qtyValue = useMemo(() => {
+        const v = Number(String(qty).trim());
+        return v;
+    }, [qty]);
 
     const error = useMemo(() => {
         if (!touched) return "";
 
+        if (!receiverId) return "اختر المستخدم المستلم";
         if (!qty) return "أدخل الكمية";
         if (!Number.isFinite(qtyValue) || qtyValue <= 0)
             return "الكمية لازم تكون رقم أكبر من صفر";
         if (!Number.isInteger(qtyValue)) return "الكمية لازم تكون رقم صحيح";
-
-        // لو تنقيص: متسمحش يقل عن 0 (حسب المتاح عند المستخدم)
-        if (mode === "sub" && qtyValue > availableQty) {
-            return `لا يمكن أن تتجاوز المتاح للتنقيص (${availableQty})`;
-        }
-
+        if (qtyValue > availableQty)
+            return `لا يمكن أن تتجاوز المتاح (${availableQty})`;
         return "";
-    }, [touched, qty, qtyValue, mode, availableQty]);
+    }, [touched, receiverId, qty, qtyValue, availableQty]);
 
-    const canSave = !error && !submitting;
+    const canSave = !error && availableQty > 0 && !submitting;
 
     const openConfirm = (e) => {
         e.preventDefault();
@@ -97,47 +106,37 @@ export default function AdjustQuantityDialog({
         setConfirmOpen(true);
     };
 
-    const doAdjust = async () => {
+    const doTransfer = async () => {
         const payload = {
             productId: Number(product.productId),
-            userId: Number(targetUserId),
-            qty: Number(signedQty), // ✅ موجب أو سالب
+            userId: Number(receiverId), // المستلم
+            qty: Number(qtyValue),
         };
 
         try {
             setSubmitting(true);
-            await updateUserProductQuantity(payload);
+            await TransUserProductQuantity(payload);
 
             showToast({
-                message:
-                    mode === "add" ? "تم التزويد بنجاح" : "تم التنقيص بنجاح",
-                icon:
-                    mode === "add" ? (
-                        <AddCircleOutlineIcon />
-                    ) : (
-                        <RemoveCircleOutlineIcon />
-                    ),
+                message: "تم التحويل بنجاح",
+                icon: <SwapHorizIcon />,
                 severity: "success",
                 duration: 2000,
             });
 
-            // ✅ حدث UI
-            onAdjusted?.({
+            // ✅ تحديث UI: نقص من المعروض حالياً
+            onTransferred?.({
                 productId: payload.productId,
-                qtyDelta: payload.qty,
+                qty: payload.qty,
+                receiverUserId: payload.userId,
             });
 
             setConfirmOpen(false);
             onClose?.();
         } catch {
             showToast({
-                message: "فشل تنفيذ العملية. حاول مرة أخرى.",
-                icon:
-                    mode === "add" ? (
-                        <AddCircleOutlineIcon />
-                    ) : (
-                        <RemoveCircleOutlineIcon />
-                    ),
+                message: "فشل التحويل. حاول مرة أخرى.",
+                icon: <SwapHorizIcon />,
                 severity: "error",
                 duration: 2500,
             });
@@ -148,11 +147,6 @@ export default function AdjustQuantityDialog({
     };
 
     if (!product) return null;
-
-    const confirmMsg =
-        mode === "add"
-            ? `هل تريد تزويد ${qtyValue || 0} من "${product.productName}" لهذا المستخدم؟`
-            : `هل تريد تنقيص ${qtyValue || 0} من "${product.productName}" لهذا المستخدم؟`;
 
     return (
         <>
@@ -168,12 +162,12 @@ export default function AdjustQuantityDialog({
                 >
                     <Box sx={{ flex: 1 }}>
                         <Typography sx={{ fontWeight: 900 }}>
-                            تزويد / تنقيص
+                            تحويل مخزون
                         </Typography>
                         <Typography
                             sx={{ color: "text.secondary", fontSize: 13 }}
                         >
-                            {product.productName} — الحالي: {availableQty}
+                            {product.productName} — المتاح: {availableQty}
                         </Typography>
                     </Box>
 
@@ -191,37 +185,41 @@ export default function AdjustQuantityDialog({
                 <DialogContent sx={{ pt: 2 }}>
                     <Box component="form" onSubmit={openConfirm}>
                         <Stack spacing={2}>
-                            <FormControl disabled={submitting}>
-                                <FormLabel
-                                    sx={{ color: "text.secondary", mb: 1 }}
+                            <FormControl
+                                fullWidth
+                                sx={selectSx}
+                                disabled={submitting || usersLoading}
+                            >
+                                <InputLabel>المستخدم المستلم</InputLabel>
+                                <Select
+                                    label="المستخدم المستلم"
+                                    value={receiverId}
+                                    onChange={(e) =>
+                                        setReceiverId(e.target.value)
+                                    }
+                                    onBlur={() => setTouched(true)}
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <PersonIcon
+                                                sx={{ color: "text.secondary" }}
+                                            />
+                                        </InputAdornment>
+                                    }
                                 >
-                                    نوع العملية
-                                </FormLabel>
-
-                                <RadioGroup
-                                    row
-                                    value={mode}
-                                    onChange={(e) => {
-                                        setMode(e.target.value);
-                                        setTouched(true);
-                                    }}
-                                >
-                                    <FormControlLabel
-                                        value="add"
-                                        control={<Radio />}
-                                        label="تزويد"
-                                    />
-                                    <FormControlLabel
-                                        value="sub"
-                                        control={<Radio />}
-                                        label="تنقيص"
-                                    />
-                                </RadioGroup>
+                                    {receivers.map((u) => (
+                                        <MenuItem
+                                            key={u.userId}
+                                            value={String(u.userId)}
+                                        >
+                                            {u.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
                             </FormControl>
 
                             <TextField
                                 fullWidth
-                                label="الكمية"
+                                label="الكمية المراد تحويلها"
                                 value={qty}
                                 onChange={(e) => setQty(e.target.value)}
                                 onBlur={() => setTouched(true)}
@@ -238,7 +236,7 @@ export default function AdjustQuantityDialog({
                                     ),
                                 }}
                                 sx={inputSx}
-                                disabled={submitting}
+                                disabled={submitting || availableQty <= 0}
                             />
                         </Stack>
 
@@ -260,14 +258,12 @@ export default function AdjustQuantityDialog({
                                 startIcon={
                                     submitting ? (
                                         <CircularProgress size={16} />
-                                    ) : mode === "add" ? (
-                                        <AddCircleOutlineIcon />
                                     ) : (
-                                        <RemoveCircleOutlineIcon />
+                                        <SwapHorizIcon />
                                     )
                                 }
                                 disabled={!canSave}
-                                sx={mode === "add" ? successBtnSx : dangerBtnSx}
+                                sx={primaryBtnSx}
                             >
                                 {submitting ? "جاري..." : "حفظ"}
                             </Button>
@@ -278,22 +274,22 @@ export default function AdjustQuantityDialog({
 
             <ConfirmDialog
                 open={confirmOpen}
-                title="تأكيد العملية"
-                message={confirmMsg}
-                icon={
-                    mode === "add" ? (
-                        <AddCircleOutlineIcon />
-                    ) : (
-                        <RemoveCircleOutlineIcon />
-                    )
-                }
+                title="تأكيد التحويل"
+                danger={false}
                 confirmText="تأكيد"
                 cancelText="إلغاء"
                 loading={submitting}
-                danger={mode === "sub"} // التنقيص نخليه يميل للأحمر
+                icon={<SwapHorizIcon />}
+                message={`هل تريد تحويل ${qtyValue || 0} من "${product.productName}" للمستخدم المحدد؟`}
                 onClose={() => (submitting ? null : setConfirmOpen(false))}
-                onConfirm={doAdjust}
+                onConfirm={doTransfer}
             />
         </>
     );
 }
+
+/* styles */
+
+
+
+

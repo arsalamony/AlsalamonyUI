@@ -36,7 +36,7 @@ import {
     btnSaveSx,
     inputSx,
     selectSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
 import { addPayment, addPaymentByAdmin } from "../../api/payment.api"; // ✅
 import { usePaymentMethods } from "../../hooks/usePaymentMethods"; // ✅

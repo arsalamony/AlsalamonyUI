@@ -19,7 +19,7 @@ import { getInvoiceById } from "../../api/Invoice.api";
 import { getInvoiceItemsByInvoiceId } from "../../api/InvoiceItem.api"; // ✅ عدّل المسار حسب عندك
 import { getErrorMessage } from "../../api/apiError";
 import { formatDateTime, formatMoney } from "../../utils/Methods";
-import { btnOutlineSx, cardSx } from "../../Comps/SomeAttrs";
+import { btnOutlineSx, cardSx } from "@/styles/uiStyles";
 
 export default function InvoiceDetailsPage() {
     const { invoiceId } = useParams();

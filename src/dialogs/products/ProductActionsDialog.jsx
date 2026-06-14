@@ -23,7 +23,7 @@ import {
     btnOutlineSx,
     actionPrimaryBtnSx,
     actionSuccessBtnSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 import AdjustQuantityDialog from "./AdjustQuantityDialog";
 
 function isAdminRole() {

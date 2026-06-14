@@ -25,8 +25,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
-import { useUsers } from "../hooks/useUsers";
-import { getUserWithProducts } from "../api/user.api";
+import { useUsers } from "@/hooks/useUsers";
+import { getUserWithProducts } from "@/api/user.api";
 import {
     cardSx,
     iconBoxSx,
@@ -37,9 +37,9 @@ import {
     okChipSx,
     badChipSx,
     actionBtnSx,
-} from "../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
-import ProductActionsDialog from "../dailogs/ProductDialogs/ProductActionsDialog"; // عدّل المسار
+import ProductActionsDialog from "@/dialogs/products/ProductActionsDialog"; // عدّل المسار
 
 function isAdminRole() {
     return String(localStorage.getItem("role") || "").toLowerCase() === "admin";
@@ -55,8 +55,9 @@ export default function DashboardHome() {
     const myId = Number(localStorage.getItem("Id") || 0);
     const myName = localStorage.getItem("name") || "—";
 
+    const storedUserId = localStorage.getItem("userId");
     const [selectedUserId, setSelectedUserId] = useState(
-        admin ? "" : String(myId),
+        admin ? String(storedUserId || "") : String(myId),
     );
 
     // data from API Get/{id}
@@ -66,14 +67,13 @@ export default function DashboardHome() {
 
     // ✅ لما الادمن: لو لسه مختارش user، اختار أول واحد تلقائيًا لما users يجهزوا
     useEffect(() => {
-        // if (!admin) return;
-        const userId = localStorage.getItem("userId");
-        if (userId) setSelectedUserId(String(userId));
+        if (!admin) return;
         if (selectedUserId) return;
         if (usersLoading) return;
 
-
-    }, []);
+        const firstUserId = users[0]?.userId;
+        if (firstUserId) setSelectedUserId(String(firstUserId));
+    }, [admin, selectedUserId, users, usersLoading]);
 
     useEffect(() => {
         let cancelled = false;

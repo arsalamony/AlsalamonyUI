@@ -43,7 +43,7 @@ import {
     dialogPaperSx,
     inputSx,
     selectSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
 // ✅ عدّل القيم لتطابق enum عندك (نفس AddTaskRequest)
 const priorityOptions = [

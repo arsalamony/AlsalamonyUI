@@ -45,7 +45,7 @@ import {
     chipDeductSx,
     btnOutlineSx,
     amountChipSx,
-} from "../../Comps/SomeAttrs";
+} from "@/styles/uiStyles";
 
 export default function AllPayments() {
     const [pageNo, setPageNo] = useState(1); // يبدأ من 1
