@@ -55,10 +55,9 @@ export default function DashboardHome() {
     const myId = Number(localStorage.getItem("Id") || 0);
     const myName = localStorage.getItem("name") || "—";
 
-    const storedUserId = localStorage.getItem("userId");
     const [selectedUserId, setSelectedUserId] = useState(
-        admin ? String(storedUserId || "") : String(myId),
-    );
+        admin ? "" : String(myId),
+        );
 
     // data from API Get/{id}
     const [data, setData] = useState(null); // UserResponse
@@ -67,13 +66,13 @@ export default function DashboardHome() {
 
     // ✅ لما الادمن: لو لسه مختارش user، اختار أول واحد تلقائيًا لما users يجهزوا
     useEffect(() => {
-        if (!admin) return;
+        // if (!admin) return;
+        const userId = localStorage.getItem("userId");
+        if (userId) setSelectedUserId(String(userId));
         if (selectedUserId) return;
         if (usersLoading) return;
 
-        const firstUserId = users[0]?.userId;
-        if (firstUserId) setSelectedUserId(String(firstUserId));
-    }, [admin, selectedUserId, users, usersLoading]);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
